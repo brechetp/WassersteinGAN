@@ -49,11 +49,20 @@ def write_opt(opt, path, timestamp=None):
 
 def textfiter(n, opt):
     '''formats the string for the iter number '''
-    ne = n // ((opt.Diters + 1) * opt.epochSize) + 1
-    nb = ((n // (opt.Diters + 1)) % opt.epochSize) + 1
+    ne = n // ((opt.iterOT + opt.iterG) * opt.epochSize) + 1
+    nb = ((n // (opt.iterOT + opt.iterG)) % opt.epochSize) + 1
     text = "e:{:0>2d} b:{:0>2d} (n:{:d})".format(ne, nb, n)
     return  text
 
+def strfopt(opt):
+    """string for opt"""
+    out = '{}'.format(opt.dataset)
+    out += '_ne{}_es{}_bs{}_bsg{}_eps{}_c{}_lrD{}_lrG{}'.format(opt.nepoch, opt.epochSize, opt.batchSize, opt.batchSizeGen, opt.eps, opt.cost, opt.lrD, opt.lrG)
+    if opt.lrsD:  # lr scheduler for OT
+        out += '_lrsD'
+    if opt.lrsG:  # lr scheduler for OT
+        out += '_lrsG'
+    return out
 
 def max_or_first(max_val, arr, d, axis=1):
         return np.maximum(max_val, arr[..., d].max(axis=axis)) if max_val is not None else arr[..., d].max(axis=axis)
@@ -122,13 +131,16 @@ def filter_kwargs(kw: dict, fun,  *args, **kwargs):
     target.update(add_kwargs)
     return {k: kw[k] for k in kw.keys() if k in target}
 
-def optsffile(filename):
+def optsffile(filename, namespace):
     '''Returns a opt string configuration file from a filename'''
     opt_lst = []
+    keys = namespace.__dict__.keys()  # the allowed keys for the arguments
     with open(filename, 'r') as file:
         for line in file:
             record = line.strip().split(': ')  # assumes this partition in the config file
-            opt_lst += parse_record(record)
+            if record[0] in keys:
+                keys -= record[0]
+                opt_lst += parse_record(record)
     return opt_lst
 
 def parse_record(record):
@@ -175,7 +187,7 @@ class LoadFromFile(argparse.Action):
         else:
             if not os.path.isfile(values):
                 raise ValueError('The argument is not a file', values)
-            opt_lst = optsffile(values)
+            opt_lst = optsffile(values, namespace)
             opt_lst.extend(parse_record(['config', '1']))
             parser.parse_args(opt_lst, namespace=namespace)
         return
@@ -194,6 +206,13 @@ def test(args):
     make_movie(args[1])
 
 if __name__ == "__main__":
-    test(sys.argv)
+    # test(sys.argv)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', action = LoadFromFile)
+    parser.add_argument('--i', type=int)
+    parser.add_argument('--str', default='str')
+
+    parser.parse_args(['--config', 'out/latest/config.txt'])
+    pdb.set_trace()
 
 
