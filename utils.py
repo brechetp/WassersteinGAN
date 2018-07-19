@@ -120,13 +120,16 @@ def filter_kwargs(kw: dict, fun,  *args, **kwargs):
     target.update(add_kwargs)
     return {k: kw[k] for k in kw.keys() if k in target}
 
-def optsffile(filename):
+def optsffile(filename, namespace):
     '''Returns a opt string configuration file from a filename'''
     opt_lst = []
+    keys = namespace.__dict__.keys()  # the allowed keys for the arguments
     with open(filename, 'r') as file:
         for line in file:
             record = line.strip().split(': ')  # assumes this partition in the config file
-            opt_lst += parse_record(record)
+            if record[0] in keys:
+                keys -= record[0]
+                opt_lst += parse_record(record)
     return opt_lst
 
 def parse_record(record):
@@ -171,7 +174,7 @@ class LoadFromFile(argparse.Action):
         else:
             if not os.path.isfile(values):
                 raise ValueError('The argument is not a file', values)
-            opt_lst = optsffile(values)
+            opt_lst = optsffile(values, namespace)
             opt_lst.extend(parse_record(['config', '1']))
             parser.parse_args(opt_lst, namespace=namespace)
         return
