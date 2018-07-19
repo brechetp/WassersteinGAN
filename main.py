@@ -16,13 +16,14 @@ import gen
 from journal import Journal
 import pdb
 import logging
+import utils
 logging.basicConfig(level=logging.INFO)
 
 import models.dcgan as dcgan
 import models.mlp as mlp
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', required=True, help='cifar10 | lsun | imagenet | folder | lfw | gaussian')
+parser.add_argument('--dataset', required=False, help='cifar10 | lsun | imagenet | folder | lfw | gaussian')
 parser.add_argument('--dataroot', required=False, help='path to dataset')
 parser.add_argument('--workers', type=int, help='number of data loading workers', default=2)
 parser.add_argument('--batchSize', type=int, default=64, help='input batch size')
@@ -53,13 +54,16 @@ parser.add_argument('--deletetmp', action='store_true', help='delete the tempora
 parser.add_argument('--adam', action='store_true', help='Whether to use adam (default is rmsprop)')
 parser.add_argument('--random', action='store_true', help='random sampling of the gaussian')
 parser.add_argument('--ngaussian', type=int, default=1, help='the number of gaussians to draw (for dataset == gaussian)')
+parser.add_argument('--config', action=utils.LoadFromFile, help='configuration file')
+parser.add_argument('--manualSeed', type=int, help='manual random seed')
+parser.add_argument('--jpath', help='path for the logging')
 opt = parser.parse_args()
 logging.info(opt)
 
-
 journal = Journal(opt)
 
-opt.manualSeed = random.randint(1, 10000) # fix seed
+if opt.manualSeed is None:
+    opt.manualSeed = random.randint(1, 10000) # fix seed
 print("Random Seed: ", opt.manualSeed)
 random.seed(opt.manualSeed)
 torch.manual_seed(opt.manualSeed)
@@ -171,7 +175,6 @@ else:
 
 gen_iterations = 0
 
-
 def next_epoch(i):
     return i >= size_epoch
 
@@ -260,6 +263,11 @@ for epoch in range(opt.niter):
                 gen = netG(fixed_noise)
                 journal.add_data('generated', gen, epoch*size_epoch + i)
                 journal.add_data('nu', nu_fullbatch)
+
+            journal.add_data('errD', errD, epoch*size_epoch+i)
+            journal.add_data('errG', errG, epoch*size_epoch+i)
+            journal.add_data('errD_real', errD_real, epoch*size_epoch+i)
+            journal.add_data('errD_fake', errD_fake, epoch*size_epoch+i)
 
     # do checkpointing
     torch.save(netG.state_dict(), '{0}/netG_epoch_{1}.pth'.format(opt.outf, epoch))

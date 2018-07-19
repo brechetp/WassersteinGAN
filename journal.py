@@ -31,9 +31,6 @@ class Journal(object):
         self.opt = opt
         dirname = opt.outf
 
-
-
-
         self._root_path = os.path.realpath(ROOT_PATH)
         self._dir_path = os.path.join(self._root_path, dirname)
         self.opt.jpath = self._folder_path = os.path.join(self._root_path, dirname, dirnow, name)
@@ -51,12 +48,12 @@ class Journal(object):
 
         return
 
-
     def add_data(self, key, val, n=None, batch=True):
         """Adds a vector to the journal"""
         val = val.detach().cpu()
+        numel = val.numel()
         ndim = val.dim()
-        if ndim == 0:
+        if ndim == 0 or numel ==1:
             self._add_scalar(key, val.numpy(), n)
             return
         if batch:  # the first dimension is the batch dimension
@@ -85,7 +82,6 @@ class Journal(object):
             else:
                 raise NotImplementedError()
         return
-
 
     def _add_matrix(self, key, val, n):
         """Val is a nbxnd value"""
@@ -152,7 +148,6 @@ class Journal(object):
         self._scalar[key].append((n, val))
 
         return
-
 
     def _log_db(self):
         '''logs the entry into the database'''
@@ -245,7 +240,6 @@ class Journal(object):
             z = np.array([r[0] for r in rec])  # the z coordinate
             vs.scatter_3d_and_save(filename, x=xy_data[:, 0], y=xy_data[:, 1], z=z, label=key, text=text, zlabel='niter')
 
-
     def _scatter_2d_batch(self, *args, **kwargs):
         """Plot the 2d_batch vector"""
         for key, rec in self._2dpoint_batch.items():
@@ -307,7 +301,6 @@ class Journal(object):
             utils.make_movie(path, delete=self.opt.deletetmp)
         return
 
-
     def _add_2dpoint_batch_fixed(self, key, val):
         '''Adds a fixed 2d_batch distribution'''
         self._2dpoint_batch[key] = [(0, val.reshape(val.shape[0], val.shape[1]))]  # won't be expanding
@@ -324,13 +317,11 @@ class Journal(object):
         vs.scatter_and_save(filename, x, y, label=name)
         return
 
-
     def add_model(self, key, model, out, niter):
         """Saves the model and plots its graph"""
         self._writer.add_graph(model, out)
         torch.save(model.state_dict(), os.path.join(self._folder_path, '{}-i{:04d}.p'.format(key, niter)))
         return
-
 
     def _add_histc(self, key, val, niter):
         '''Stores the histograms of values'''
@@ -338,7 +329,6 @@ class Journal(object):
             self._histc[key] = []
         self._histc[key].append((niter, val))
         return
-
 
     def _scatter_3d_batch(self, *args, **kwargs):
         """Closes the writing object"""

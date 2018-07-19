@@ -1,6 +1,5 @@
 __doc__ = '''Module to help visualization and plotting'''
 
-
 import torch
 import matplotlib
 matplotlib.use('Qt5Agg')  # for remote working
@@ -10,8 +9,6 @@ import pdb
 from matplotlib.offsetbox import AnchoredText
 from mpl_toolkits.mplot3d import Axes3D
 
-
-
 def hist(data, **kwargs):
     '''Histogram of the data'''
     _,ax = new_figure(**kwargs)
@@ -20,7 +17,6 @@ def hist(data, **kwargs):
     ax.legend()
     add_text(ax, **kwargs)
     return
-
 
 def hist_and_save(path, data, **kwargs):
     '''Saves the histogram'''
@@ -109,7 +105,6 @@ def scatter(x, y, ax, **kwargs):
     ax = add_text(ax, **kwargs)
     ax.legend()
     return ax
-
 
 def imshow(mat, **kwargs):
     '''Show the matrix on the graph'''

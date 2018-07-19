@@ -12,12 +12,12 @@ class MLP_G(nn.Module):
 
         main = nn.Sequential(
             # Z goes into a linear of size: ngf
-            nn.Linear(nz, ngf),
-            nn.ReLU(True),
-            nn.Linear(ngf, ngf),
-            nn.ReLU(True),
-            nn.Linear(ngf, ngf),
-            nn.ReLU(True),
+            #  nn.Linear(nz, ngf),
+            #  nn.ReLU(True),
+            #  nn.Linear(ngf, ngf),
+            #  nn.ReLU(True),
+            #  nn.Linear(ngf, ngf),
+            #  nn.ReLU(True),
             nn.Linear(ngf, nc * isize * isize),
         )
         self.main = main
@@ -32,7 +32,6 @@ class MLP_G(nn.Module):
         else:
             output = self.main(input)
         return output.view(output.size(0), self.nc, self.isize, self.isize)
-
 
 class MLP_D(nn.Module):
     def __init__(self, isize, nz, nc, ndf, ngpu):

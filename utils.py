@@ -49,11 +49,10 @@ def write_opt(opt, path, timestamp=None):
 
 def textfiter(n, opt):
     '''formats the string for the iter number '''
-    ne = n // ((opt.Diters + 1) * opt.epochSize) + 1
-    nb = ((n // (opt.Diters + 1)) % opt.epochSize) + 1
+    ne = n // (opt.epochSize) + 1
+    nb = n %  (opt.epochSize // (opt.Diters + 1)) + 1
     text = "e:{:0>2d} b:{:0>2d} (n:{:d})".format(ne, nb, n)
     return  text
-
 
 def max_or_first(max_val, arr, d, axis=1):
         return np.maximum(max_val, arr[..., d].max(axis=axis)) if max_val is not None else arr[..., d].max(axis=axis)
@@ -111,7 +110,6 @@ def make_movie(path: str, delete: bool = False):
     os.chdir(oldwd)
     return
 
-
 def filter_kwargs(kw: dict, fun,  *args, **kwargs):
     # target = user_defined
     target = set(fun.__code__.co_varnames)  # the target dictionary
@@ -148,7 +146,6 @@ def parse_record(record):
             return out
     return out
 
-
 def tr_field(f):
     '''Checks if digit or str field...'''
     try:
@@ -158,7 +155,6 @@ def tr_field(f):
             return float(f)
         except ValueError:
             return f
-
 
 class LoadFromFile(argparse.Action):
     '''Class to load a namespace from a file'''
@@ -187,13 +183,8 @@ def fetch_2d_gradient_W1(model):
         if key.find('Linear1') != -1:
             return torch.cat((val.weight.data, val.weight.grad), dim=1)
 
-
-
-
 def test(args):
     make_movie(args[1])
 
 if __name__ == "__main__":
     test(sys.argv)
-
-
