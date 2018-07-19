@@ -46,29 +46,36 @@ def mm_gaussian(nsample, means, covars, weights):
         mm_sample[idx] = samples[i, idx]
     return mm_sample
 
-
-
 def rotation_matrix(nd, theta):
     R = torch.eye(3, 3, dtype=torch.float)
     R[0, 0], R[0, 1] = np.cos(theta), -np.sin(theta)
     R[1, 0], R[1, 1] = np.sin(theta), np.cos(theta)
     return R[:nd, :nd]
 
-def random_mc(nd, ngaussian):
+def random_mc(nd, ngaussian, random=True):
     '''Random parameters for the gaussians'''
     assert nd > 0 and ngaussian > 0
     theta = torch.zeros(1)
     R = torch.zeros(nd, nd)
     eigenvalues = torch.zeros((nd,))
     mean = torch.zeros(nd)
-    det = 1
+    det = 0.01
     covars = ngaussian * [0]
     means = ngaussian * [0]
+    e = torch.zeros(nd)
+    scale = 10
+    e[0] = scale  # first vector
+    origin = torch.zeros(nd)
+    rot = 0
     for i in range(ngaussian):
         R.uniform_(0, 1)
         theta.uniform_(0, 2*math.pi)
-        mean.uniform_(-3, 3)
-        eigenvalues.random_(1, to=3)
+        rot += (2 * math.pi / ngaussian)
+        if random:
+            mean.uniform_(-scale, scale)
+        else:
+            mean = origin + rotation_matrix(nd, rot) @ e
+        eigenvalues.random_(1, to=10)
         eigenvalues.div_(eigenvalues.max())
         # pdb.set_trace()
         U = rotation_matrix(nd, theta)
@@ -85,20 +92,20 @@ torch.manual_seed(2)
 np.random.seed(2)
 
 for nd in range(1, 4):
-    means, covars, _ = random_mc(nd, 5)
+    means, covars, _ = random_mc(nd, 25)
     G_COVARS[nd-1] = covars
     G_MEANS[nd-1] = means
 
-
 def get_means_covars(nd, ngaussian, random):
-    global G_COVARS, G_MEANS
-    if random:
-        return random_mc(nd, ngaussian)
-    else:
-        covars = G_COVARS[nd-1][:ngaussian]
-        means = G_MEANS[nd-1][:ngaussian]
-        weights = torch.ones(ngaussian)
-    return means, covars, weights
+    #  global G_COVARS, G_MEANS
+    #  if random:
+    #      return random_mc(nd, ngaussian)
+    #  else:
+    #      covars = G_COVARS[nd-1][:ngaussian]
+    #      means = G_MEANS[nd-1][:ngaussian]
+    #      weights = torch.ones(ngaussian)
+        #  return means, covars, weights
+    return random_mc(nd, ngaussian, random)
 
 def gaussian_dataset(ngaussian, nd, nsample, random=True):
     """The function called by the script"""
