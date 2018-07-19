@@ -2,7 +2,7 @@ __doc__ = '''Module to help visualization and plotting'''
 
 import torch
 import matplotlib
-matplotlib.use('Qt5Agg')  # for remote working
+matplotlib.use('Agg')  # for remote working
 import matplotlib.pyplot as plt
 import utils
 import pdb

@@ -128,7 +128,7 @@ def optsffile(filename, namespace):
         for line in file:
             record = line.strip().split(': ')  # assumes this partition in the config file
             if record[0] in keys:
-                keys -= record[0]
+                keys -={  record[0] }
                 opt_lst += parse_record(record)
     return opt_lst
 

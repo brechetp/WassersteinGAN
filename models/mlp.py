@@ -11,13 +11,13 @@ class MLP_G(nn.Module):
         self.ngpu = ngpu
 
         main = nn.Sequential(
-            # Z goes into a linear of size: ngf
-            #  nn.Linear(nz, ngf),
-            #  nn.ReLU(True),
-            #  nn.Linear(ngf, ngf),
-            #  nn.ReLU(True),
-            #  nn.Linear(ngf, ngf),
-            #  nn.ReLU(True),
+            #  Z goes into a linear of size: ngf
+            nn.Linear(nz, ngf),
+            nn.ReLU(True),
+            nn.Linear(ngf, ngf),
+            nn.ReLU(True),
+            nn.Linear(ngf, ngf),
+            nn.ReLU(True),
             nn.Linear(ngf, nc * isize * isize),
         )
         self.main = main

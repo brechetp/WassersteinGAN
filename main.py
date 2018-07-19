@@ -121,6 +121,10 @@ def weights_init(m):
     elif classname.find('BatchNorm') != -1:
         m.weight.data.normal_(1.0, 0.02)
         m.bias.data.fill_(0)
+    elif classname.find('Linear') != -1:
+        nn.init.eye_(m.weight)
+        m.weight.requires_grad_()
+        m.bias.data.fill_(0)
 
 if opt.noBN:
     netG = dcgan.DCGAN_G_nobn(opt.imageSize, nz, nc, ngf, ngpu, n_extra_layers)

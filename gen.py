@@ -46,8 +46,6 @@ def mm_gaussian(nsample, means, covars, weights):
         mm_sample[idx] = samples[i, idx]
     return mm_sample.unsqueeze(2).unsqueeze(3)
 
-
-
 def rotation_matrix(nd, theta):
     R = torch.eye(3, 3, dtype=torch.float)
     R[0, 0], R[0, 1] = np.cos(theta), -np.sin(theta)
@@ -67,8 +65,8 @@ def random_mc(nd, ngaussian):
     for i in range(ngaussian):
         R.uniform_(0, 1)
         theta.uniform_(0, 2*math.pi)
-        mean.uniform_(-3, 3)
-        eigenvalues.random_(1, to=3)
+        mean.uniform_(-10, 10)
+        eigenvalues.random_(1, to=5)
         eigenvalues.div_(eigenvalues.max())
         # pdb.set_trace()
         U = rotation_matrix(nd, theta)
@@ -81,14 +79,13 @@ def random_mc(nd, ngaussian):
 G_COVARS = 3 * [0]
 G_MEANS = 3 * [0]
 
-torch.manual_seed(2)
-np.random.seed(2)
+torch.manual_seed(0)
+np.random.seed(0)
 
-for nd in range(1, 4):
-    means, covars, _ = random_mc(nd, 5)
+for nd in range(1, 3):
+    means, covars, _ = random_mc(nd, 25)
     G_COVARS[nd-1] = covars
     G_MEANS[nd-1] = means
-
 
 def get_means_covars(nd, ngaussian, random):
     global G_COVARS, G_MEANS
