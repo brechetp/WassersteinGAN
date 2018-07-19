@@ -44,7 +44,7 @@ def mm_gaussian(nsample, means, covars, weights):
         range_idx = range_idx[1], min(n+range_idx[1], nsample)
         idx = indices[range_idx[0]:range_idx[1]]
         mm_sample[idx] = samples[i, idx]
-    return mm_sample.unsqueeze(2).unsqueeze(3)
+    return mm_sample
 
 
 
