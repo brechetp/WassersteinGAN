@@ -62,6 +62,7 @@ def min_or_first(min_val, arr, d, axis=1):
 def compute_2d_bbox(d, keys, aspect='equal'):
     max_x, min_x, max_y, min_y = None, None, None, None
     # pdb.set_trace()
+    keys = [k for k in keys if k in d.keys()]
     for key in keys:
         val = np.array([v for _,v in d[key]])
         max_x = max_or_first(max_x, val, d=0)

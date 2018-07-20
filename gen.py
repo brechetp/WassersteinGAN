@@ -63,20 +63,21 @@ def random_mc(nd, ngaussian, random=True):
     covars = ngaussian * [0]
     means = ngaussian * [0]
     e = torch.zeros(nd)
-    scale = 10
+    scale = 2
     e[0] = scale  # first vector
     origin = torch.zeros(nd)
     rot = 0
     for i in range(ngaussian):
-        R.uniform_(0, 1)
+        #  R.uniform_(0, 1)
         theta.uniform_(0, 2*math.pi)
         rot += (2 * math.pi / ngaussian)
         if random:
             mean.uniform_(-scale, scale)
         else:
             mean = origin + rotation_matrix(nd, rot) @ e
-        eigenvalues.random_(1, to=10)
+        eigenvalues.random_(1, to=2)
         eigenvalues.div_(eigenvalues.max())
+        eigenvalues.mul_(0.02)
         # pdb.set_trace()
         U = rotation_matrix(nd, theta)
         D = torch.diag(eigenvalues)
@@ -120,7 +121,7 @@ def gaussian_gen(ngaussian, nd, batchSize, seed, random=True):
     means, covars, weights = get_means_covars(nd, ngaussian, random)
     while True:
         # yield multi_normal.sample((batchSize,))
-        yield mm_gaussian(batchSize, means, covars, weights)
+        yield mm_gaussian(batchSize, means, covars, weights) / 1.414
 
 def manual_seed(seed):
     torch.manual_seed(seed)

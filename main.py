@@ -122,9 +122,10 @@ def weights_init(m):
         m.weight.data.normal_(1.0, 0.02)
         m.bias.data.fill_(0)
     elif classname.find('Linear') != -1:
-        nn.init.eye_(m.weight)
+        nn.init.xavier_normal_(m.weight)
         m.weight.requires_grad_()
-        m.bias.data.fill_(0)
+        #  m.bias.data.fill_(0)
+        #  m.requires_grad_()
 
 if opt.noBN:
     netG = dcgan.DCGAN_G_nobn(opt.imageSize, nz, nc, ngf, ngpu, n_extra_layers)
@@ -148,19 +149,25 @@ if opt.netD != '':
     netD.load_state_dict(torch.load(opt.netD))
 print(netD)
 
-size_epoch = opt.epochSize if opt.dataset == 'gaussian' else len(dataloader)
+size_epoch = opt.epochSize if opt.dataset == 'gaussian' else len(dataloader)  # in batches
 
-size_fullbatch = size_epoch * opt.batchSize
+size_fullbatch = opt.ngaussian * 128 #size_epoch * opt.batchSize  # in samples
 
 input = torch.FloatTensor(opt.batchSize, opt.nc, opt.imageSize, opt.imageSize)
 noise = torch.FloatTensor(opt.batchSize, nz, 1, 1)
 fixed_noise = torch.FloatTensor(size_fullbatch, nz, 1, 1).normal_(0, 1)
-journal.add_data('mu', fixed_noise)
-journal.add_data('generated', fixed_noise, 0)
+#  journal.add_data('mu', fixed_noise)
+journal.add_data('generated', netG(fixed_noise), 0)
 one = torch.FloatTensor([1])
 mone = one * -1
 
 nu_fullbatch = torch.zeros(size_fullbatch, nc)
+i = 0
+data_iter = iter(dataloader)
+while i < size_fullbatch:
+    data = next(data_iter)
+    nu_fullbatch = torch.cat((nu_fullbatch, data.squeeze()), dim=0)
+    i += data.size(0)
 
 if opt.cuda:
     netD.cuda()
@@ -192,11 +199,11 @@ for epoch in range(opt.niter):
         for p in netD.parameters(): # reset requires_grad
             p.requires_grad = True # they are set to False below in netG update
 
-        # train the discriminator Diters times
-        if gen_iterations < 25 or gen_iterations % 500 == 0:
-            Diters = 100
-        else:
-            Diters = opt.Diters
+        #  train the discriminator Diters times
+        #  if gen_iterations < 25 or gen_iterations % 500 == 0:
+        #      Diters = 100
+        #  else:
+        Diters = opt.Diters
         j = 0
         while j < Diters and not next_epoch(i):
             j += 1
@@ -206,7 +213,6 @@ for epoch in range(opt.niter):
                 p.data.clamp_(opt.clamp_lower, opt.clamp_upper)
 
             data = next(data_iter)
-            nu_fullbatch[i*opt.batchSize:(i+1)*opt.batchSize, :] = data.squeeze()
             i += 1
 
             # train with real

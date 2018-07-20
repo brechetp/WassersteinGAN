@@ -261,6 +261,7 @@ class Journal(object):
         '''Plot the different keys on the same figure'''
         if keys is None:
             keys = self._2dpoint_batch.keys()
+        keys = [k for k in keys if k in self._2dpoint_batch.keys()]
         n_keys = len(keys)
         colors = kwargs.pop('colors', ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w'][:n_keys])
         markers = kwargs.pop('markers', ['+'])
