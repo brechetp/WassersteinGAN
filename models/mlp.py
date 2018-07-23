@@ -13,6 +13,7 @@ class MLP_G(nn.Module):
         main = nn.Sequential(
             #  Z goes into a linear of size: ngf
             nn.Linear(nz, ngf),
+            #  nn.Linear(nz, nc),
             nn.ReLU(True),
             nn.Linear(ngf, ngf),
             nn.ReLU(True),

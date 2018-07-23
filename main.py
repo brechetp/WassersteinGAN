@@ -156,7 +156,8 @@ size_fullbatch = opt.ngaussian * 128 #size_epoch * opt.batchSize  # in samples
 input = torch.FloatTensor(opt.batchSize, opt.nc, opt.imageSize, opt.imageSize)
 noise = torch.FloatTensor(opt.batchSize, nz, 1, 1)
 fixed_noise = torch.FloatTensor(size_fullbatch, nz, 1, 1).normal_(0, 1)
-#  journal.add_data('mu', fixed_noise)
+if nz == 2:
+    journal.add_data('mu', fixed_noise)
 journal.add_data('generated', netG(fixed_noise), 0)
 one = torch.FloatTensor([1])
 mone = one * -1
@@ -193,8 +194,25 @@ for epoch in range(opt.niter):
     data_iter = iter(dataloader)
     i = 0
     while not next_epoch(i):
+
         ############################
-        # (1) Update D network
+        # (1) Update G network
+        ###########################
+        for p in netD.parameters():
+            p.requires_grad = False # to avoid computation
+        netG.zero_grad()
+        # in case our last batch was the tail batch of the dataloader,
+        # make sure we feed a full batch of noise
+        noise.resize_(opt.batchSize, nz, 1, 1).normal_(0, 1)
+        noisev = Variable(noise)
+        fake = netG(noisev)
+        errG = netD(fake)
+        errG.backward(one)
+        optimizerG.step()
+        gen_iterations += 1
+
+        ############################
+        # (2) Update D network
         ###########################
         for p in netD.parameters(): # reset requires_grad
             p.requires_grad = True # they are set to False below in netG update
@@ -241,22 +259,6 @@ for epoch in range(opt.niter):
             errD_fake.backward(mone)
             errD = errD_real - errD_fake
             optimizerD.step()
-
-        ############################
-        # (2) Update G network
-        ###########################
-        for p in netD.parameters():
-            p.requires_grad = False # to avoid computation
-        netG.zero_grad()
-        # in case our last batch was the tail batch of the dataloader,
-        # make sure we feed a full batch of noise
-        noise.resize_(opt.batchSize, nz, 1, 1).normal_(0, 1)
-        noisev = Variable(noise)
-        fake = netG(noisev)
-        errG = netD(fake)
-        errG.backward(one)
-        optimizerG.step()
-        gen_iterations += 1
 
         print('[%d/%d][%d/%d][%d] Loss_D: %f Loss_G: %f Loss_D_real: %f Loss_D_fake %f'
             % (epoch, opt.niter, i, size_epoch, gen_iterations,
